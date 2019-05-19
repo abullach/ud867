@@ -1,14 +1,22 @@
 package com.udacity.gradle.builditbigger;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.test.espresso.idling.CountingIdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.bullach.android.androidjokes.JokeActivity;
+import com.bullach.android.lib.JavaJokes;
+
 
 public class MainActivity extends AppCompatActivity {
+
+    // this idling resource will be used by Espresso to wait for and synchronize with Network call
+    CountingIdlingResource espressoTestIdlingResource = new CountingIdlingResource("Network_Call");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +48,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void tellJoke(View view) {
-        Toast.makeText(this, "derp", Toast.LENGTH_SHORT).show();
+        JavaJokes jokes = new JavaJokes();
+
+        Toast.makeText(this, jokes.generateJoke(), Toast.LENGTH_SHORT).show();
     }
 
+    public void tellAndroidJoke(View view) {
+        // increment idling resource for telling Espresso wait for the network call
+        espressoTestIdlingResource.increment();
 
+        new EndpointsAsyncTask(new EndpointsAsyncTask.TaskCompleteListener() {
+            @Override
+            public void onTaskComplete(String result) {
+                Intent intent = new Intent(MainActivity.this, JokeActivity.class);
+                intent.putExtra(getString(R.string.jokeExtra), result);
+                startActivity(intent);
+            }
+        }).execute(this);
+
+        // decrement idling resource to tell Espresso that the Network call has been completed
+        espressoTestIdlingResource.decrement();
+    }
+
+    /**
+     * @return MainActvity's idling resource for Espresso testing
+     */
+    public CountingIdlingResource getEspressoIdlingResourceForMainActivity() {
+        return espressoTestIdlingResource;
+    }
 }

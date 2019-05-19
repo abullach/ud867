@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Android Jokes</string>
+    <string name="tvJoke">Wait for it.</string>
+    <string name="jokeExtra">jokeExtra</string>
+    <string name="fallbackJoke">That\'s not funny at all.</string>
+</resources>

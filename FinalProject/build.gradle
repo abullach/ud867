@@ -2,10 +2,15 @@
 
 buildscript {
     repositories {
+        maven {
+            url "https://maven.google.com"
+        }
+        google()
+        mavenCentral()
         jcenter()
     }
     dependencies {
-        classpath 'com.google.guava:guava:22.0'
+        classpath 'com.google.guava:guava:24.1-jre'
         classpath 'com.android.tools.build:gradle:3.0.1'
 
         // NOTE: Do not place your application dependencies here; they belong

@@ -3,6 +3,7 @@ apply plugin: 'com.google.cloud.tools.endpoints-framework-client'
 
 buildscript {
     repositories {
+        google()
         jcenter()
     }
     dependencies {
@@ -15,7 +16,6 @@ android {
     buildToolsVersion "26.0.3"
 
     defaultConfig {
-        applicationId "com.udacity.gradle.builditbigger"
         minSdkVersion 16
         targetSdkVersion 26
         versionCode 1
@@ -31,20 +31,79 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    flavorDimensions "version"
+    productFlavors {
+        free {
+            dimension "version"
+            applicationIdSuffix ".free"
+            versionNameSuffix "-free"
+        }
+        paid {
+            dimension "version"
+            applicationIdSuffix ".paid"
+            versionNameSuffix "-paid"
+        }
+    }
+
+    sourceSets {
+        main { java.srcDirs = ['src/main/java'] }
+        androidTest { java.srcDirs = ['src/androidTest/java'] }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
 }
+
+android.defaultConfig.javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     endpointsServer project(path: ':backend', configuration: 'endpoints')
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.google.android.gms:play-services-ads:11.8.0'
-    implementation 'com.google.api-client:google-api-client:1.23.0'
+    freeImplementation 'com.google.android.gms:play-services-ads:15.0.1'
+    implementation 'com.google.api-client:google-api-client:1.24.1'
     implementation 'com.google.http-client:google-http-client-android:1.23.0'
-    implementation 'com.google.code.findbugs:jsr305:3.0.1'
-
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    // Java library for Udacity project step 1
+    implementation project(":lib")
+    // Android library for Udacity project step 2
+    implementation project(":androidjokes")
+    // GCE for Udacity project step 3
+    implementation project(path: ':backend', configuration: 'default')
+    // Test dependencies for Udacity project step 4
     testImplementation 'junit:junit:4.12'
+    androidTestImplementation('com.android.support.test:rules:1.0.2') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    androidTestImplementation('com.android.support.test:runner:1.0.2') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.2') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    implementation('com.android.support.test.espresso:espresso-idling-resource:3.0.2') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
+}
+
+// Test Task for Udacity project optional step
+task testProject {
+    dependsOn(['startDevServer','runInstrumentedTests','shutdownDevServer'])
+}
+
+task startDevServer {
+    dependsOn ':backend:appengineStart'
+}
+
+task runInstrumentedTests {
+    dependsOn ':app:connectedAndroidTest'
+    mustRunAfter "startDevServer"
+}
+
+task shutdownDevServer {
+    dependsOn ':backend:appengineStop'
+    mustRunAfter "runInstrumentedTests"
 }
